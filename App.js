@@ -41,7 +41,8 @@ export default class App extends Component {
     this.handleDidUpdateState = this.handleDidUpdateState.bind(this)
     this.getPeripheralFromState = this.getPeripheralFromState.bind(this)
     this.setPeripheralFromState = this.setPeripheralFromState.bind(this)
-    this.getBondedPeripherals = this.getBondedPeripherals.bind(this)
+    this.retrieveServices = this.retrieveServices.bind(this)
+    this.deletePeripheralFromState = this.deletePeripheralFromState.bind(this)
   }
 
   async componentDidMount () {
@@ -70,7 +71,7 @@ export default class App extends Component {
             console.log('Permission is OK')
           }
           else {
-            PermissionsAndroid.requestPermission(
+            PermissionsAndroid.request(
               PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).
               then((result) => {
                 if (result) {
@@ -105,8 +106,7 @@ export default class App extends Component {
 
   handleDisconnectedPeripheral (data) {
     console.log('handleDisconnectedPeripheral')
-    data.peripheral.connected = false
-    const peripherals = this.setPerihericalFromState(data.peripheral)
+    const peripherals = this.deletePeripheralFromState(data.peripheral)
     this.setState({ peripherals })
     console.log('Disconnected from ' + data.peripheral)
   }
@@ -139,15 +139,15 @@ export default class App extends Component {
     connectedPeripherals.forEach(connectedPeripheral => {
       connectedPeripheral.connected = true
       const peripherals = this.setPeripheralFromState(connectedPeripheral)
-
       this.setState({ peripherals })
     })
   }
 
-  async getBondedPeripherals(peripheralId) {
+  async retrieveServices(peripheralId) {
     try {
-      const services = await BleManager.retrieveServices(peripheralId)
-      console.log(services)
+      const peripheral = await BleManager.retrieveServices(peripheralId)
+      const peripherals = this.setPeripheralFromState(peripheral)
+      this.setState({ peripherals })
     } catch (error) {
       console.error(error, error.stack)
     }
@@ -157,7 +157,6 @@ export default class App extends Component {
     if (discoveredPeripheral.name === 'KMS01') {
       console.log('Got ble peripheral', discoveredPeripheral)
       const peripherals = this.setPeripheralFromState(discoveredPeripheral)
-      console.log(peripherals)
       this.setState({ peripherals })
     }
   }
@@ -235,6 +234,16 @@ export default class App extends Component {
     }, [peripheral])
   }
 
+  deletePeripheralFromState(peripheralId) {
+    return this.state.peripherals.reduce((accumulator, currentValue) => {
+      if (currentValue.id !== peripheralId) {
+        console.log(currentValue.id, peripheralId)
+        accumulator.push(currentValue)
+      }
+      return accumulator
+    }, [])
+  }
+
   render () {
     const list = Array.from(this.state.peripherals.values())
     const dataSource = ds.cloneWithRows(list)
@@ -286,7 +295,8 @@ export default class App extends Component {
                       }}>{item.id}</Text>
                     </View>
                   </TouchableHighlight>
-                  <TouchableHighlight onPress={() => this.getBondedPeripherals(item.id)}>
+                  {(!!item.connected) &&
+                  <TouchableHighlight onPress={() => this.retrieveServices(item.id)}>
                     <View style={[styles.row, { backgroundColor: color }]}>
                       <Text style={{
                         fontSize: 12,
@@ -296,6 +306,7 @@ export default class App extends Component {
                       }}>Click</Text>
                     </View>
                   </TouchableHighlight>
+                  }
                 </>
               )
             }}
