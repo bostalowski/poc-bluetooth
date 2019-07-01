@@ -59,11 +59,33 @@ export default class App extends Component<AppProps, AppState> {
     this.renderItem = this.renderItem.bind(this)
   }
 
+  static HexToBase64 (str) {
+    return btoa(String.fromCharCode.apply(null,
+      str.replace(/\r|\n/g, '').
+        replace(/([\da-fA-F]{2}) ?/g, '0x$1 ').
+        replace(/ +$/, '').
+        split(' ')),
+    )
+  }
+
+  static Base64ToHex (base64) {
+    const bin = atob(base64.replace(/[ \r\n]+$/, ''))
+    let hex = []
+    for (let i = 0; i < bin.length; ++i) {
+      let tmp = bin.charCodeAt(i).toString(16)
+      if (tmp.length === 1) {
+        tmp = '0' + tmp
+      }
+      hex[hex.length] = tmp
+    }
+    return hex.join(' ')
+  }
+
   async handleAppStateChange (nextAppState) {
     if (this.state.appState.match(/inactive|background/) && nextAppState ===
       'active') {
       console.log('App has come to the foreground!')
-      const peripheralsArray = await this.bleManager.connectedDevices([])
+      const peripheralsArray = await this.bleManager.devices([])
       console.log('Connected peripherals: ' + peripheralsArray.length)
     }
     this.setState({ appState: nextAppState })
@@ -186,23 +208,17 @@ export default class App extends Component<AppProps, AppState> {
   }
 
   async test (device: Device): Promise<void> {
-    // console.log(
-    //   await device.readCharacteristicForService(SERVICE_ID,
-    // CHARACTERISTICS_ID))
-    const encodedValue = this.hexToBase64('11')
+    const encodedValue = App.HexToBase64('13')
     console.log(encodedValue)
-    console.log(
-      await device.writeCharacteristicWithResponseForService(SERVICE_ID,
-        CHARACTERISTICS_ID, encodedValue))
-  }
-
-  hexToBase64 (str) {
-    return btoa(String.fromCharCode.apply(null,
-      str.replace(/\r|\n/g, '').
-        replace(/([\da-fA-F]{2}) ?/g, '0x$1 ').
-        replace(/ +$/, '').
-        split(' ')),
-    )
+    const charac = await device.writeCharacteristicWithResponseForService(
+      SERVICE_ID,
+      CHARACTERISTICS_ID, encodedValue)
+    const readCharac = await device.readCharacteristicForService(SERVICE_ID,
+      CHARACTERISTICS_ID)
+    console.log(readCharac, readCharac.value)
+    // device.monitorCharacteristicForService(SERVICE_ID, CHARACTERISTICS_ID,
+    // (error, characteristic) => { if (error) { console.error(error) return }
+    // console.log(characteristic) })
   }
 
   renderItem ({ item }) {
