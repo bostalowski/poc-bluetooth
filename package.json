@@ -7,9 +7,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "crypto-js": "^3.1.9-1",
     "react": "16.8.3",
     "react-native": "0.59.9",
-    "react-native-ble-plx": "^1.0.3"
+    "react-native-ble-plx": "^1.0.3",
+    "react-native-testid": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.4.5",
@@ -17,11 +19,23 @@
     "@types/node": "^12.0.10",
     "@types/react": "^16.8.22",
     "babel-jest": "24.8.0",
-    "jest": "24.8.0",
+    "detox": "^13.0.3",
+    "jest": "^24.8.0",
     "metro-react-native-babel-preset": "0.54.1",
     "react-test-renderer": "16.8.3"
   },
   "jest": {
     "preset": "react-native"
+  },
+  "detox": {
+    "configurations": {
+      "ios.sim.debug": {
+        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/PocBluetooth.app",
+        "build": "xcodebuild -project ios/PocBluetooth.xcodeproj -scheme PocBluetooth -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 8' -derivedDataPath ios/build",
+        "type": "ios.simulator",
+        "name": "iPhone 8"
+      }
+    },
+    "test-runner": "jest"
   }
 }

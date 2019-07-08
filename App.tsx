@@ -18,6 +18,8 @@ import {
   Service,
   Characteristic,
 } from 'react-native-ble-plx'
+import CryptoJS from 'crypto-js'
+import testID from 'react-native-testid'
 
 const window = Dimensions.get('window')
 
@@ -115,6 +117,16 @@ export default class App extends Component<AppProps, AppState> {
           }
         })
     }
+
+    const data = [{ id: 1 }, { id: 2 }]
+
+    // Encrypt
+    const ciphertext = CryptoJS.AES.encrypt(JSON.stringify(data), 'secret key 123')
+
+    // Decrypt
+    const bytes = CryptoJS.AES.decrypt(ciphertext.toString(), 'secret key 123')
+    const plaintext = JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+    console.log(plaintext)
   }
 
   componentWillUnmount () {}
@@ -140,7 +152,6 @@ export default class App extends Component<AppProps, AppState> {
         allowDuplicates: false,
       }, this.handleDiscoverDevice)
       setTimeout(this.stopScan, SCAN_TIMEOUT)
-      // await BleManager.scan([], 3, true)
       console.log('Scanning...')
       this.setState({ scanning: true })
     }
@@ -266,7 +277,8 @@ export default class App extends Component<AppProps, AppState> {
           margin: 20,
           padding: 20,
           backgroundColor: '#ccc',
-        }} onPress={() => this.startScan()}>
+        }} onPress={() => this.startScan()}
+        {...testID('START_SCAN_BUTTON')}>
           <Text>Scan Bluetooth ({this.state.scanning ? 'on' : 'off'})</Text>
         </TouchableHighlight>
         <TouchableHighlight style={{
