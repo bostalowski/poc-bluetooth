@@ -9,7 +9,7 @@
   "dependencies": {
     "crypto-js": "^3.1.9-1",
     "react": "16.8.3",
-    "react-native": "0.59.9",
+    "react-native": "0.62.3",
     "react-native-ble-plx": "^1.0.3",
     "react-native-testid": "^1.0.0"
   },
